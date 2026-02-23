@@ -74,9 +74,58 @@ All NeoPixel parameters can be overridden with `#define` before including `Confi
 #define NP_TX_B 255
 ```
 
-## Building
+## Flashing the Pre-Built Firmware
 
-This firmware uses the same build system as the upstream RNode Firmware CE. You need [arduino-cli](https://arduino.github.io/arduino-cli/) installed.
+A known-good pre-built binary for the LilyGO LoRa32 v2.1 is included in the `Release/` directory. You can flash it directly without compiling anything.
+
+### Prerequisites
+
+- [arduino-cli](https://arduino.github.io/arduino-cli/) installed
+- ESP32 core installed (`make prep-esp32`, or `arduino-cli core install esp32:esp32@2.0.17 --config-file arduino-cli.yaml`)
+- Your RNode connected via USB
+
+### Find your serial port
+
+```bash
+# macOS
+ls /dev/cu.usb*
+
+# Linux
+ls /dev/ttyACM* /dev/ttyUSB*
+```
+
+### Flash
+
+```bash
+arduino-cli upload -p /dev/cu.usbserial-XXXX \
+  --fqbn esp32:esp32:ttgo-lora32 \
+  --input-file Release/rnode_firmware_lora32v21_neopixel.bin
+```
+
+Replace `/dev/cu.usbserial-XXXX` with your actual serial port.
+
+After flashing, set the firmware hash so `rnodeconf` recognizes the device:
+
+```bash
+rnodeconf /dev/cu.usbserial-XXXX --firmware-hash $(./partition_hashes Release/rnode_firmware_lora32v21_neopixel.bin)
+```
+
+### Flash the console image (optional)
+
+The [RNode Bootstrap Console](https://unsigned.io/rnode_bootstrap_console) is stored in a separate SPIFFS partition. To flash it:
+
+```bash
+python3 Release/esptool/esptool.py \
+  --port /dev/cu.usbserial-XXXX \
+  --chip esp32 --baud 921600 \
+  --before default_reset --after hard_reset \
+  write_flash -z --flash_mode dio --flash_freq 80m --flash_size 4MB \
+  0x210000 Release/console_image.bin
+```
+
+## Building from Source
+
+To compile the firmware yourself, you need [arduino-cli](https://arduino.github.io/arduino-cli/) installed.
 
 ```bash
 # Install dependencies (ESP32 core, libraries, etc.)
@@ -84,7 +133,12 @@ make prep-esp32
 
 # Build for LilyGO LoRa32 v2.1
 make firmware-lora32_v21
+
+# Upload to device (defaults to /dev/ttyACM0, override with port=)
+make upload-lora32_v21 port=/dev/cu.usbserial-XXXX
 ```
+
+The `upload-lora32_v21` target handles flashing the firmware, setting the firmware hash, and writing the console image in one step.
 
 See the upstream [build documentation](Documentation/BUILDING.md) for full details on all supported targets.
 
