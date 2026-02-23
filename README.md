@@ -1,8 +1,28 @@
 # RNode Firmware — NeoPixel Edition
 
-A fork of the [RNode Firmware CE (Community Edition)](https://github.com/liberatedsystems/RNode_Firmware_CE) with added NeoPixel status indicator support for boards like the LilyGO LoRa32 v2.1.
+A fork of the [RNode Firmware CE (Community Edition)](https://github.com/liberatedsystems/RNode_Firmware_CE) with added NeoPixel status indicator support for ESP32-based boards like the LilyGO LoRa32 v2.1.
 
 The NeoPixel lights up on boot and on every data transfer (RX/TX), giving you an at-a-glance visual indicator that your node is alive and actively relaying traffic.
+
+<p align="center">
+  <img src="images/rnode-neopixel-closeup.png" width="60%" alt="RNode with NeoPixel lit during boot">
+</p>
+
+## Boot Sequence
+
+When the device powers on, the NeoPixel lights up purple and stays lit while the firmware initializes. The OLED display cycles through hardware init, device checks, and version info — all while the NeoPixel confirms the node is alive.
+
+<p align="center">
+  <img src="images/rnode-boot-init.png" width="32%" alt="Hardware init">
+  <img src="images/rnode-boot-checks.png" width="32%" alt="Device checks passed">
+  <img src="images/rnode-boot-version.png" width="32%" alt="Firmware version display">
+</p>
+
+Once checks pass, the device is ready and the NeoPixel remains lit for 60 seconds before turning off. Any RX or TX activity re-triggers it.
+
+<p align="center">
+  <img src="images/rnode-ready.png" width="45%" alt="RNode ready with NeoPixel indicator">
+</p>
 
 ## What's Changed
 
