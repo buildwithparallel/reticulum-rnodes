@@ -36,9 +36,13 @@ The upstream firmware already has NeoPixel support for some boards (e.g. NRF52-b
 
 After the timeout, the LED turns off automatically. Any new activity resets the timer.
 
-### NeoPixel Pin
+### NeoPixel Pin — GPIO 13, not GPIO 12
 
-On ESP32 boards, the NeoPixel data pin defaults to **GPIO 13** (GPIO 12 is a strapping pin and can cause boot issues). You can override this at compile time:
+[Mark Qvist's original build guide](https://unsigned.io/guides/2023_01_14_Making_A_Handheld_RNode.html) suggests wiring the NeoPixel data line to **GPIO 12**. We found that **GPIO 12 does not work** — it's a strapping pin on the ESP32 that controls the flash voltage regulator at boot. If it's pulled high by the NeoPixel data line during reset, the board can fail to boot entirely or behave erratically.
+
+This fork defaults to **GPIO 13** instead, which works reliably. If you've already built your RNode following the original guide, you'll need to move the data wire from GPIO 12 to GPIO 13 (they're right next to each other on most ESP32 boards).
+
+You can override the pin at compile time if you've wired to a different GPIO:
 
 ```cpp
 #define PIN_NEOPIXEL 13
