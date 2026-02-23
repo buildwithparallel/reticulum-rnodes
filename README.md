@@ -148,10 +148,18 @@ This fork is tested on the **LilyGO LoRa32 v2.1** with an external NeoPixel on G
 
 For the full list of boards supported by the base firmware, see the upstream [RNode Firmware CE](https://github.com/liberatedsystems/RNode_Firmware_CE).
 
-## Upstream
+## Credits & Upstream
 
-Based on [RNode Firmware CE](https://github.com/liberatedsystems/RNode_Firmware_CE) by Jacob Eva / [Liberated Embedded Systems](https://liberatedsystems.co.uk), which is itself a community fork of the [original RNode Firmware](https://github.com/markqvist/RNode_Firmware) by Mark Qvist.
+This project builds on the work of others. Big thanks to:
+
+- **[Mark Qvist](https://unsigned.io)** — Creator of the [Reticulum](https://reticulum.network) network stack, the [original RNode Firmware](https://github.com/markqvist/RNode_Firmware), and the [RNode ecosystem](https://unsigned.io/rnode.html). His [handheld RNode build guide](https://unsigned.io/guides/2023_01_14_Making_A_Handheld_RNode.html) is what got us started, and the NeoPixel wiring in this fork follows his design (with the GPIO 12 to 13 fix). His [blog](https://unsigned.io) and [documentation](https://markqvist.github.io/Reticulum/) are invaluable resources for anyone working with RNodes.
+
+- **[Jacob Eva / Liberated Embedded Systems](https://liberatedsystems.co.uk)** — Maintainer of the [RNode Firmware CE (Community Edition)](https://github.com/liberatedsystems/RNode_Firmware_CE), which this repo is forked from. The CE fork added NeoPixel support for the LilyGO LoRa32 (contributed by [@0x62](https://github.com/0x62) in [PR #71](https://github.com/liberatedsystems/RNode_Firmware_CE/pull/71)) and continues to expand board support.
+
+- **[Reticulum](https://reticulum.network)** — The cryptography-based networking stack that RNodes are designed to work with. None of this would exist without it.
 
 ## License
 
 GNU General Public License v3.0 — see [LICENSE](LICENSE) for details.
+
+The upstream RNode Firmware is Copyright 2024 Mark Qvist / [unsigned.io](https://unsigned.io). The RNode Firmware CE is Copyright Jacob Eva / [Liberated Embedded Systems](https://liberatedsystems.co.uk). The SX1276 driver is released under MIT License, Copyright 2018 Sandeep Mistry / Mark Qvist.
