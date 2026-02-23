@@ -1,0 +1,20 @@
+# Build artifacts
+build/
+
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Arduino CLI
+.arduino15/
