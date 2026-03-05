@@ -1,5 +1,9 @@
 # RNode Firmware — NeoPixel Edition
 
+<p align="center">
+  <img src="reticulum-over-halow.png" width="70%" alt="Handheld RNode running Reticulum over HaLow">
+</p>
+
 A fork of the [RNode Firmware CE (Community Edition)](https://github.com/liberatedsystems/RNode_Firmware_CE) with added NeoPixel status indicator support for ESP32-based boards like the LilyGO LoRa32 v2.1.
 
 The NeoPixel lights up on boot and on every data transfer (RX/TX), giving you an at-a-glance visual indicator that your node is alive and actively relaying traffic.
