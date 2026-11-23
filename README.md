@@ -108,11 +108,18 @@ arduino-cli upload -p /dev/cu.usbserial-XXXX \
 
 Replace `/dev/cu.usbserial-XXXX` with your actual serial port.
 
-After flashing, set the firmware hash so `rnodeconf` recognizes the device:
+After flashing, bootstrap the EEPROM and set the firmware hash. Until the EEPROM is written, the board says the config is missing and the status half of the display stays blank. This is the bootstrap that turns the full screen on for the 915 MHz handheld:
 
 ```bash
+rnodeconf /dev/cu.usbserial-XXXX -r --platform ESP32 --product b1 --model b9 --hwrev 1
 rnodeconf /dev/cu.usbserial-XXXX --firmware-hash $(./partition_hashes Release/rnode_firmware_lora32v21_neopixel.bin)
 ```
+
+`b1` is the LilyGO LoRa32 v2.1, `b9` is the SX1276 850–950 MHz radio, and `hwrev` 1 matches this board. On reset the NeoPixel turns purple for 60 seconds. That means GPIO 13 is driving it.
+
+Do not run `rnodeconf --autoinstall`. That downloads the stock firmware and puts the pixel back on GPIO 12.
+
+If the upload dies with `Invalid head of packet` or serial noise, flash at 115200 instead of 921600. A purple blink and an immediate reboot is a brownout, usually the NeoPixel 3.3V and ground wires touching. Separate them and reset again.
 
 ### Flash the console image (optional)
 
@@ -139,10 +146,16 @@ make prep-esp32
 make firmware-lora32_v21
 
 # Upload to device (defaults to /dev/ttyACM0, override with port=)
+# Upload uses 115200. 921600 dropped bytes on the handheld cable.
 make upload-lora32_v21 port=/dev/cu.usbserial-XXXX
+
+# Write the EEPROM so the full display is used
+make provision-lora32_v21 port=/dev/cu.usbserial-XXXX
 ```
 
-The `upload-lora32_v21` target handles flashing the firmware, setting the firmware hash, and writing the console image in one step.
+`make firmware-lora32_v21` stages the sources into `build/RNode_Firmware_CE` first. arduino-cli names the sketch after the directory, and this repo is not named `RNode_Firmware_CE`.
+
+The `upload-lora32_v21` target flashes the firmware, sets the firmware hash, and writes the console image. `provision-lora32_v21` is the EEPROM bootstrap above. Run it once on a new board. Running it again on a board that already has a valid EEPROM makes no changes.
 
 See the upstream [build documentation](Documentation/BUILDING.md) for full details on all supported targets.
 

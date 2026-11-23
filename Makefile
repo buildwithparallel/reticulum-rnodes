@@ -74,8 +74,22 @@ upload-spiffs:
 
 firmware: $(shell grep ^firmware- Makefile | cut -d: -f1)
 
+ARDUINO_DATA_DIR := $(shell arduino-cli config get directories.data 2>/dev/null || echo $(HOME)/.arduino15)
+SKETCH_STAGE = build/RNode_Firmware_CE
+LORA32_BUILD = build/esp32.esp32.ttgo-lora32
+
 check_bt_buffers:
-	@./esp32_btbufs.py ~/.arduino15/packages/esp32/hardware/esp32/$(ARDUINO_ESP_CORE_VER)/libraries/BluetoothSerial/src/BluetoothSerial.cpp
+	@./esp32_btbufs.py $(ARDUINO_DATA_DIR)/packages/esp32/hardware/esp32/$(ARDUINO_ESP_CORE_VER)/libraries/BluetoothSerial/src/BluetoothSerial.cpp
+
+# arduino-cli names the sketch after the directory. This repo is not named
+# RNode_Firmware_CE, so stage a directory that is.
+stage-sketch:
+	mkdir -p $(SKETCH_STAGE)
+	ln -sfn $(CURDIR)/RNode_Firmware_CE.ino $(SKETCH_STAGE)/
+	ln -sfn $(CURDIR)/*.h $(CURDIR)/*.hpp $(CURDIR)/*.cpp $(SKETCH_STAGE)/
+	ln -sfn $(CURDIR)/src $(SKETCH_STAGE)/src
+	ln -sfn $(CURDIR)/Fonts $(SKETCH_STAGE)/Fonts
+	ln -sfn $(CURDIR)/Graphics $(SKETCH_STAGE)/Graphics
 
 firmware-tbeam: check_bt_buffers
 	arduino-cli compile --fqbn esp32:esp32:t-beam $(COMMON_BUILD_FLAGS) --build-property "compiler.cpp.extra_flags=\"-DBOARD_MODEL=0x33\" \"-DBOARD_VARIANT=0xE4\""
@@ -107,8 +121,8 @@ firmware-lora32_v10_extled: check_bt_buffers
 firmware-lora32_v20: check_bt_buffers
 	arduino-cli compile --fqbn esp32:esp32:ttgo-lora32 $(COMMON_BUILD_FLAGS) --build-property "compiler.cpp.extra_flags=\"-DBOARD_MODEL=0x36\" \"-DEXTERNAL_LEDS=true\""
 
-firmware-lora32_v21: check_bt_buffers
-	arduino-cli compile --fqbn esp32:esp32:ttgo-lora32 $(COMMON_BUILD_FLAGS) --build-property "compiler.cpp.extra_flags=\"-DBOARD_MODEL=0x37\""
+firmware-lora32_v21: check_bt_buffers stage-sketch
+	arduino-cli compile --fqbn esp32:esp32:ttgo-lora32 $(COMMON_BUILD_FLAGS) --build-path $(CURDIR)/$(LORA32_BUILD) --build-property "compiler.cpp.extra_flags=\"-DBOARD_MODEL=0x37\"" $(CURDIR)/$(SKETCH_STAGE)
 
 firmware-lora32_v21_extled: check_bt_buffers
 	arduino-cli compile --fqbn esp32:esp32:ttgo-lora32 $(COMMON_BUILD_FLAGS) --build-property "compiler.cpp.extra_flags=\"-DBOARD_MODEL=0x37\" \"-DEXTERNAL_LEDS=true\""
@@ -187,11 +201,18 @@ upload-lora32_v20:
 	python3 ./Release/esptool/esptool.py --port $(or $(port), /dev/ttyUSB0) $(COMMON_ESP_UPLOAD_FLAGS) ./Release/console_image.bin
 
 upload-lora32_v21:
-	arduino-cli upload -p $(or $(port), /dev/ttyACM0) --fqbn esp32:esp32:ttgo-lora32
+	arduino-cli upload -p $(or $(port), /dev/ttyACM0) --fqbn esp32:esp32:ttgo-lora32:UploadSpeed=115200 --input-dir $(CURDIR)/$(LORA32_BUILD)
 	@sleep 1
-	rnodeconf $(or $(port), /dev/ttyACM0) --firmware-hash $$(./partition_hashes ./build/esp32.esp32.ttgo-lora32/RNode_Firmware_CE.ino.bin)
+	rnodeconf $(or $(port), /dev/ttyACM0) --firmware-hash $$(./partition_hashes $(LORA32_BUILD)/RNode_Firmware_CE.ino.bin)
 	@sleep 3
 	python3 ./Release/esptool/esptool.py --port $(or $(port), /dev/ttyACM0) $(COMMON_ESP_UPLOAD_FLAGS) ./Release/console_image.bin
+
+# Bootstrap a LilyGO LoRa32 v2.1 (850-950 MHz) so the full display comes up.
+# product b1 = T3 v2.1, model b9 = SX1276 850-950 MHz, hwrev 1.
+# Do not use rnodeconf --autoinstall. That replaces this firmware.
+provision-lora32_v21:
+	rnodeconf $(or $(port), /dev/ttyACM0) -r --platform ESP32 --product b1 --model b9 --hwrev 1
+	rnodeconf $(or $(port), /dev/ttyACM0) --firmware-hash $$(./partition_hashes $(or $(bin), $(LORA32_BUILD)/RNode_Firmware_CE.ino.bin))
 
 upload-heltec32_v2:
 	arduino-cli upload -p $(or $(port), /dev/ttyUSB0) --fqbn esp32:esp32:heltec_wifi_lora_32_V2
